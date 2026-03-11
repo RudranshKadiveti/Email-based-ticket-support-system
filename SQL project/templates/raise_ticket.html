@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="row g-5">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3"><h5>Raise a New Ticket</h5></div>
+                <div class="card-body p-4">
+                    <form action="/raise_ticket" method="POST">
+                        <div class="mb-3"><label class="form-label fw-bold">Email</label><input type="email" name="email" class="form-control" required></div>
+                        <div class="mb-3"><label class="form-label fw-bold">Subject</label><input type="text" name="subject" class="form-control" required></div>
+                        <div class="mb-3"><label class="form-label fw-bold">Priority</label>
+                            <select name="priority" class="form-select"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option></select>
+                        </div>
+                        <div class="mb-3"><label class="form-label fw-bold">Description</label><textarea name="description" class="form-control" rows="3" required></textarea></div>
+                        <button type="submit" class="btn btn-primary w-100">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white py-3"><h5>Your Ticket History</h5></div>
+                <div class="card-body p-4">
+                    {% if last_email %}
+                    <form action="/search_history" method="POST" class="row g-2 mb-4 border-bottom pb-3">
+                        <input type="hidden" name="search_email" value="{{ last_email }}">
+                        <div class="col-md-4"><select name="filter_status" class="form-select form-select-sm"><option value="">Status</option><option value="Open">Open</option><option value="Resolved">Resolved</option></select></div>
+                        <div class="col-md-4"><select name="filter_priority" class="form-select form-select-sm"><option value="">Priority</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div>
+                        <div class="col-md-4"><button class="btn btn-sm btn-dark w-100">Apply</button></div>
+                    </form>
+                    {% endif %}
+
+                    {% if history %}
+                        {% for h in history %}
+                        <div class="list-group-item border rounded p-3 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="fw-bold">{{ h.Subject }}</h6>
+                                <span class="badge {% if h.Status == 'Open' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ h.Status }}</span>
+                            </div>
+                            <div class="mt-2">
+                                <a href="/ticket/{{ h.Ticket_ID }}/conversation" class="btn btn-sm btn-outline-primary">Chat</a>
+                                {% if h.Status == 'Open' %}
+                                    <a href="/follow_up/{{ h.Ticket_ID }}" class="btn btn-sm btn-warning">Follow Up {% if h.FollowUpCount > 0 %}({{ h.FollowUpCount }}){% endif %}</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-center text-muted py-5">Enter your email in the search bar to view status.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
