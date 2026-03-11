@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{% if is_search %}Results for {{ last_email }}{% else %}Staff Dashboard{% endif %}</h2>
+        {% if is_search %}<a href="/dashboard" class="btn btn-sm btn-outline-secondary">Show All Tickets</a>{% endif %}
+    </div>
+
+    {% if not is_search %}
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-light">
+        <form action="/dashboard" method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3"><label class="small fw-bold">Status</label><select name="status" class="form-select"><option value="">All</option><option value="Open">Open</option><option value="Resolved">Resolved</option></select></div>
+            <div class="col-md-3"><label class="small fw-bold">Priority</label><select name="priority" class="form-select"><option value="">All</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div>
+            <div class="col-md-3"><label class="small fw-bold">Date</label><input type="date" name="date" class="form-control"></div>
+            <div class="col-md-3 d-flex gap-2"><button type="submit" class="btn btn-primary w-100">Filter</button><a href="/dashboard" class="btn btn-outline-secondary">Reset</a></div>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm border-0 overflow-hidden">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>ID</th><th>Subject</th><th>Priority</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for t in tickets %}
+                <tr {% if t.FollowUpCount > 0 %}class="table-danger"{% endif %}>
+                    <td>#{{ t.Ticket_ID }}</td>
+                    <td>
+                        <div class="fw-bold">
+                            {{ t.Subject }} 
+                            {% if t.FollowUpCount > 0 %}<span class="badge bg-danger ms-1">Urgent: {{ t.FollowUpCount }}</span>{% endif %}
+                        </div>
+                        {% if t.last_message %}<small class="text-muted italic">Last: {{ t.last_message[:40] }}...</small>{% endif %}
+                        <div><a href="/ticket/{{ t.Ticket_ID }}/conversation" class="small">Open Chat</a></div>
+                    </td>
+                    <td><span class="badge {% if t.Priority == 'High' %}bg-danger{% elif t.Priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ t.Priority }}</span></td>
+                    <td>{{ t.Status }}</td>
+                    <td>
+                        {% if user.Role == 'Administrator' %}
+                            <form action="/assign_ticket/{{ t.Ticket_ID }}" method="POST" class="d-flex gap-1">
+                                <select name="agent_id" class="form-select form-select-sm">
+                                    <option value="">Unassigned</option>
+                                    {% for agent in agents %}<option value="{{ agent.Agent_ID }}" {% if t.Agent_ID == agent.Agent_ID %}selected{% endif %}>{{ agent.Name }}</option>{% endfor %}
+                                </select>
+                                <button class="btn btn-sm btn-primary">Save</button>
+                            </form>
+                        {% elif t.Status == 'Open' and user.Agent_ID == t.Agent_ID %}
+                            <a href="/resolve_ticket/{{ t.Ticket_ID }}" class="btn btn-sm btn-success">Resolve</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
