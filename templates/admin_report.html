@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h2><i class="bi bi-shield-lock-fill"></i> Administrative Control</h2>
+        <a href="/dashboard" class="btn btn-outline-dark btn-sm">Return to Dashboard</a>
+    </div>
+
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="text-uppercase small opacity-75">Total Tickets</h6>
+                    <h2 class="display-5 fw-bold">{{ stats.total }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body">
+                    <h6 class="text-uppercase small opacity-75">Total Resolved</h6>
+                    <h2 class="display-5 fw-bold">{{ stats.resolved }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-warning text-dark">
+                <div class="card-body">
+                    <h6 class="text-uppercase small opacity-75">Pending (Open)</h6>
+                    <h2 class="display-5 fw-bold">{{ stats.pending }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold py-3">Agent Performance Statistics</div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Assigned</th>
+                                <th>Resolved</th>
+                                <th>Efficiency Bar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in performance %}
+                            <tr>
+                                <td><strong>{{ p.Name }}</strong></td>
+                                <td>{{ p.assigned }}</td>
+                                <td>{{ p.solved }}</td>
+                                <td style="width: 200px;">
+                                    {% if p.assigned > 0 %}
+                                        {% set percent = (p.solved / p.assigned * 100) | round %}
+                                        <div class="progress" style="height: 12px;">
+                                            <div class="progress-bar bg-success" style="width: {{ percent }}%"></div>
+                                        </div>
+                                        <small class="text-muted">{{ percent }}% success rate</small>
+                                    {% else %}
+                                        <small class="text-muted italic">No data</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white fw-bold py-3">Manage Team</div>
+                <div class="card-body">
+                    <p class="text-muted small mb-4">Register new staff members below to give them portal access.</p>
+                    <form action="/add_agent" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Full Name</label>
+                            <input type="text" name="name" class="form-control form-control-sm" placeholder="e.g. Suresh Kumar" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Email ID</label>
+                            <input type="email" name="email" class="form-control form-control-sm" placeholder="name@support.com" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Assign Role</label>
+                            <select name="role" class="form-select form-select-sm">
+                                <option value="Agent">Support Agent</option>
+                                <option value="Administrator">Administrator</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 shadow-sm">Add to System</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
