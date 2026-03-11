@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0">Ticket #{{ ticket.Ticket_ID }}: {{ ticket.Subject }}</h5>
+                    <span class="badge {% if ticket.Status == 'Open' %}bg-warning text-dark{% else %}bg-success{% endif %}">{{ ticket.Status }}</span>
+                </div>
+                
+                <div id="chat-box" class="card-body bg-light" style="height: 450px; overflow-y: auto; display: flex; flex-direction: column;">
+                    <div class="alert alert-secondary small mb-4"><strong>Issue:</strong> {{ ticket.Description }}</div>
+                    {% for msg in messages %}
+                        <div class="mb-3 d-flex {% if msg.Sender_Role == 'Customer' %}justify-content-end{% else %}justify-content-start{% endif %}">
+                            <div class="p-3 rounded shadow-sm {% if msg.Sender_Role == 'Customer' %}bg-primary text-white{% else %}bg-white border{% endif %}" style="max-width: 80%;">
+                                <small class="d-block fw-bold opacity-75">{{ msg.Sender_Role }}</small>
+                                <span>{{ msg.Message_Text }}</span>
+                                <small class="d-block text-end mt-2 opacity-50" style="font-size: 0.65rem;">{{ msg.Timestamp.strftime('%I:%M %p | %d %b') }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    {% if ticket.Status == 'Resolved' %}
+                        <div class="text-center my-4"><span class="badge bg-secondary p-2"><i class="bi bi-lock-fill"></i> Conversation Closed</span></div>
+                    {% endif %}
+                </div>
+
+                <div class="card-footer bg-white py-3">
+                    {% if ticket.Status == 'Open' %}
+                        {% set user = session.get('user') %}
+                        {% if not user or user.Role == 'Administrator' or user.Agent_ID == ticket.Agent_ID %}
+                            <form action="/ticket/{{ ticket.Ticket_ID }}/conversation" method="POST">
+                                <div class="input-group">
+                                    <textarea name="message" class="form-control bg-light" placeholder="Reply..." rows="2" required></textarea>
+                                    <button class="btn btn-primary px-4" type="submit"><i class="bi bi-send-fill"></i></button>
+                                </div>
+                            </form>
+                        {% else %}
+                            <p class="text-center text-muted small mb-0">Read-only mode for non-assigned agents.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-center text-danger fw-bold small mb-0">Ticket Resolved - Chat Disabled</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between align-items-center">
+                <a href="javascript:history.back()" class="btn btn-sm btn-link text-muted"><i class="bi bi-arrow-left"></i> Back</a>
+                <div>
+                    {% if session.get('user') %}
+                        <a href="/dashboard" class="btn btn-sm btn-primary"><i class="bi bi-speedometer2"></i> Return to Dashboard</a>
+                    {% endif %}
+                    <a href="/" class="btn btn-sm btn-outline-dark ms-2"><i class="bi bi-house-door"></i> Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var chatBox = document.getElementById("chat-box");
+    chatBox.scrollTop = chatBox.scrollHeight;
+</script>
+{% endblock %}
